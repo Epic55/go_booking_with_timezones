@@ -24,7 +24,7 @@ Data consistency is ensured through the use of transactions.
     - **gin** and **pgx** libraries used for HTTP API handling and database operations, respectively.
 
 ## Repository Structure
-- `cmd/main.go` — application entry point.
+- `main.go` — application entry point.
 - `docs/task.pdf` — original test task description.
 - `internal/` — core application logic.
     - `repository` — module for database interactions and schema handling.
@@ -48,12 +48,7 @@ Data consistency is ensured through the use of transactions.
     go mod download
     ```
 
-3. Start the server:
-    ```bash
-    export DATABASE_URL="postgres://hts-user:hts-pass@localhost:5432/hts?sslmode=disable"
-    export HTTP_PORT=8080
-    go run cmd/main.go
-    ```
+3. Set envs in db.go file and start the server:
    
 4. Add workshop_schedule data:
 ```postgresql
