@@ -18,11 +18,12 @@ type Booking struct {
 	ID             uuid.UUID
 	WorkshopID     int64
 	ClientID       string
-	BeginAt        pgtype.Timestamp
+	BeginAt        pgtype.Timestamp //TYPE FROM POSTGRESQL
 	EndAt          pgtype.Timestamp
 	ClientTimezone string
 }
 
+// CONVERT TO POSTGRESQL DATA TYPE
 func ConvertToPGBooking(b *domain.Booking) *Booking {
 	return &Booking{
 		ID:             b.ID,
@@ -60,8 +61,8 @@ type WorkshopSchedule struct {
 func (r *Repository) CreateBooking(ctx context.Context, booking *domain.Booking) (*domain.Booking, error) {
 	var err error
 
-	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel: pgx.ReadCommitted,
+	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{ //START TRANSACTION
+		IsoLevel: pgx.ReadCommitted, //Serializable
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
@@ -91,7 +92,7 @@ func (r *Repository) CreateBooking(ctx context.Context, booking *domain.Booking)
 		return nil, fmt.Errorf("failed to query workshop schedule: %w", err)
 	}
 
-	if !r.bookingComplyWithSchedule(booking, schedule) {
+	if !r.bookingComplyWithSchedule(booking, schedule) { //CHECK CAN WE CREATE BOOKING IN THIS SCHEDULE
 		return nil, domain.ErrBookingOutOfWorkshopSchedule
 	}
 
@@ -157,6 +158,7 @@ func (r *Repository) CreateBooking(ctx context.Context, booking *domain.Booking)
 	return booking, nil
 }
 
+// CHECK CAN WE CREATE BOOKING IN THIS SCHEDULE
 func (r *Repository) bookingComplyWithSchedule(booking *domain.Booking, ws WorkshopSchedule) bool {
 	wsTz, err := time.LoadLocation(ws.Timezone)
 	if err != nil {
@@ -164,7 +166,7 @@ func (r *Repository) bookingComplyWithSchedule(booking *domain.Booking, ws Works
 		return false
 	}
 
-	wsBeginAtMinutes := ws.BeginAt.Microseconds / 1e6 / 60 // /1000 /1000 divide on 1000 instead of 1e6
+	wsBeginAtMinutes := ws.BeginAt.Microseconds / 1e6 / 60 // /1000 /1000 / 60 - divide on 1000 instead of 1e6
 	wsEndAtMinutes := ws.EndAt.Microseconds / 1e6 / 60
 
 	wsBeginAtBookingDate := time.Date(
